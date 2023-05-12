@@ -49,17 +49,15 @@ for p in glob.iglob('plugins/proto/*.proto'):
 
 error_count = 0
 
-for plugin_name in actual:
-    methods = actual[plugin_name]
-
+for plugin_name, methods in actual.items():
     if plugin_name not in expected:
-        print('Missing documentation for plugin proto files: ' + plugin_name)
+        print(f'Missing documentation for plugin proto files: {plugin_name}')
         print('Add the following lines:')
-        print('// Plugin: ' + plugin_name)
+        print(f'// Plugin: {plugin_name}')
         error_count += 1
         for m in methods:
             io = methods[m]
-            print('// RPC ' + m + ' : ' + io[0] + ' -> ' + io[1])
+            print(f'// RPC {m} : {io[0]} -> {io[1]}')
             error_count += 1
     else:
         missing = []
@@ -68,18 +66,26 @@ for plugin_name in actual:
             io = methods[m]
             if m in expected[plugin_name]:
                 if expected[plugin_name][m] != io:
-                    wrong.append('// RPC ' + m + ' : ' + io[0] + ' -> ' + io[1])
+                    wrong.append(f'// RPC {m} : {io[0]} -> {io[1]}')
             else:
-                missing.append('// RPC ' + m + ' : ' + io[0] + ' -> ' + io[1])
+                missing.append(f'// RPC {m} : {io[0]} -> {io[1]}')
 
-        if len(missing) > 0:
-            print('Incomplete documentation for ' + ('core' if plugin_name == '' else 'plugin "' + plugin_name + '"') + ' proto files. Add the following lines:')
+        if missing:
+            print(
+                'Incomplete documentation for '
+                + ('core' if plugin_name == '' else f'plugin "{plugin_name}"')
+                + ' proto files. Add the following lines:'
+            )
             for m in missing:
                 print(m)
                 error_count += 1
 
-        if len(wrong) > 0:
-            print('Incorrect documentation for ' + ('core' if plugin_name == '' else 'plugin "' + plugin_name + '"') + ' proto files. Replace the following comments:')
+        if wrong:
+            print(
+                'Incorrect documentation for '
+                + ('core' if plugin_name == '' else f'plugin "{plugin_name}"')
+                + ' proto files. Replace the following comments:'
+            )
             for m in wrong:
                 print(m)
                 error_count += 1
@@ -88,21 +94,25 @@ for plugin_name in expected:
     methods = expected[plugin_name]
 
     if plugin_name not in actual:
-        print('Incorrect documentation for plugin proto files: ' + plugin_name)
+        print(f'Incorrect documentation for plugin proto files: {plugin_name}')
         print('The following methods are documented, but the plugin does not provide any RPC methods:')
         for m in methods:
             io = methods[m]
-            print('// RPC ' + m + ' : ' + io[0] + ' -> ' + io[1])
+            print(f'// RPC {m} : {io[0]} -> {io[1]}')
             error_count += 1
     else:
         missing = []
         for m in methods:
             io = methods[m]
             if m not in actual[plugin_name]:
-                missing.append('// RPC ' + m + ' : ' + io[0] + ' -> ' + io[1])
+                missing.append(f'// RPC {m} : {io[0]} -> {io[1]}')
 
-        if len(missing) > 0:
-            print('Incorrect documentation for ' + ('core' if plugin_name == '' else 'plugin "' + plugin_name + '"') + ' proto files. Remove the following lines:')
+        if missing:
+            print(
+                'Incorrect documentation for '
+                + ('core' if plugin_name == '' else f'plugin "{plugin_name}"')
+                + ' proto files. Remove the following lines:'
+            )
             for m in missing:
                 print(m)
                 error_count += 1

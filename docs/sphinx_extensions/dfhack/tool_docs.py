@@ -26,19 +26,13 @@ logger = sphinx.util.logging.getLogger(__name__)
 
 
 def get_label_class(builder: sphinx.builders.Builder) -> Type[nodes.Inline]:
-    if builder.format == 'text':
-        return nodes.inline
-    else:
-        return nodes.strong
+    return nodes.inline if builder.format == 'text' else nodes.strong
 
 def make_labeled_paragraph(label: Optional[str]=None, content: Optional[str]=None,
             label_class=nodes.strong, content_class=nodes.inline) -> nodes.paragraph:
     p = nodes.paragraph('', '')
     if label is not None:
-        p += [
-            label_class('', '{}:'.format(label)),
-            nodes.inline('', ' '),
-        ]
+        p += [label_class('', f'{label}:'), nodes.inline('', ' ')]
     if content is not None:
         p += content_class('', content)
     return p
@@ -76,7 +70,7 @@ def scan_all_keybinds(root_dir):
     """Get the implemented keybinds, and return a dict of
     {tool: [(full_command, keybinding, context), ...]}.
     """
-    keybindings = dict()
+    keybindings = {}
     for root, _, files in os.walk(root_dir):
         scan_keybinds(root, files, keybindings)
     return keybindings
@@ -91,7 +85,7 @@ def render_dfhack_keybind(command, builder: sphinx.builders.Builder) -> List[nod
         n = make_labeled_paragraph('Keybinding', label_class=get_label_class(builder))
         for k in key:
             if builder.format == 'text':
-                k = '[{}]'.format(k)
+                k = f'[{k}]'
             n += nodes.inline(k, k, classes=['kbd'])
         if keycmd != command:
             n += nodes.inline(' -> ', ' -> ')
@@ -115,8 +109,7 @@ _anchor_pattern = re.compile(r'^\d+')
 def to_anchor(name: str) -> str:
     name = name.lower()
     name = name.replace('/', '-')
-    name = re.sub(_anchor_pattern, '', name)
-    return name
+    return re.sub(_anchor_pattern, '', name)
 
 class DFHackToolDirectiveBase(sphinx.directives.ObjectDescription):
     has_content = False
@@ -173,20 +166,24 @@ class DFHackToolDirective(DFHackToolDirectiveBase):
         self.env.domaindata['tag-repo']['doctags'][self.env.docname] = tags
         for tag in tags:
             tag_paragraph += [
-                addnodes.pending_xref(tag, nodes.inline(text=tag), **{
-                    'reftype': 'ref',
-                    'refdomain': 'std',
-                    'reftarget': tag + '-tag-index',
-                    'refexplicit': True,
-                    'refwarn': True,
-                }),
+                addnodes.pending_xref(
+                    tag,
+                    nodes.inline(text=tag),
+                    **{
+                        'reftype': 'ref',
+                        'refdomain': 'std',
+                        'reftarget': f'{tag}-tag-index',
+                        'refexplicit': True,
+                        'refwarn': True,
+                    },
+                ),
                 nodes.inline(text=' | '),
             ]
         tag_paragraph.pop()
 
         ret_nodes = [tag_paragraph]
         if 'no-command' in self.options:
-            self.add_index_entries(self.get_name_or_docname() + ' (plugin)')
+            self.add_index_entries(f'{self.get_name_or_docname()} (plugin)')
             ret_nodes += [make_summary(self.env.app.builder, self.options.get('summary', ''))]
         return ret_nodes
 
@@ -229,28 +226,23 @@ def get_tags():
         lines = f.readlines()
         for line in lines:
             line = line.strip()
-            m = re.match(group_re, line)
-            if m:
-                group = m.group(1)
+            if m := re.match(group_re, line):
+                group = m[1]
                 groups[group] = []
                 continue
-            m = re.match(tag_re, line)
-            if m:
-                tag = m.group(1)
-                desc = m.group(2)
+            if m := re.match(tag_re, line):
+                tag = m[1]
+                desc = m[2]
                 groups[group].append((tag, desc))
     return groups
 
 
 def tag_domain_get_objects(self):
-    for obj in self.data['objects']:
-        yield(obj)
+    yield from self.data['objects']
 
 def tag_domain_merge_domaindata(self, docnames: List[str], otherdata: Dict) -> None:
-    seen = set()
     objs = self.data['objects']
-    for obj in objs:
-        seen.add(obj[0])
+    seen = {obj[0] for obj in objs}
     for obj in otherdata['objects']:
         if obj[0] not in seen:
             objs.append(obj)
@@ -268,19 +260,27 @@ def tag_index_generate(self, docnames: Optional[Iterable[str]] = None) -> Tuple[
     return (sorted(content.items()), False)
 
 def register_index(app, tag, title):
-    domain_class = type(tag+'Domain', (Domain, ), {
+    domain_class = type(
+        f'{tag}Domain',
+        (Domain,),
+        {
             'name': tag,
-            'label': 'Container domain for tag: ' + tag,
+            'label': f'Container domain for tag: {tag}',
             'initial_data': {'objects': []},
             'merge_domaindata': tag_domain_merge_domaindata,
             'get_objects': tag_domain_get_objects,
-        })
-    index_class = type(tag+'Index', (Index, ), {
+        },
+    )
+    index_class = type(
+        f'{tag}Index',
+        (Index,),
+        {
             'name': 'tag-index',
             'localname': title,
             'shortname': tag,
             'generate': tag_index_generate,
-        })
+        },
+    )
     app.add_domain(domain_class)
     app.add_index_to_domain(tag, index_class)
 
@@ -303,9 +303,9 @@ def update_index_titles(app):
             if index.shortname == 'all':
                 continue
             if app.builder.format == 'html':
-                index.localname = '"%s" tag index<h4>%s</h4>' % (index.shortname, index.localname)
+                index.localname = f'"{index.shortname}" tag index<h4>{index.localname}</h4>'
             else:
-                index.localname = '"%s" tag index - %s' % (index.shortname, index.localname)
+                index.localname = f'"{index.shortname}" tag index - {index.localname}'
 
 def register(app):
     app.add_directive('dfhack-tool', DFHackToolDirective)

@@ -29,9 +29,8 @@ def find_build_folder():
 
 def get_plugin_name(filename):
     filename = filename.replace('/devel', '')
-    match = re.search(r'plugins/(.+?)[/\.]', filename)
-    if match:
-        return match.group(1)
+    if match := re.search(r'plugins/(.+?)[/\.]', filename):
+        return match[1]
 
 def run_command(cmd):
     print('$ ' + ' '.join(cmd))
@@ -45,11 +44,11 @@ def main(args):
     cmd = ['make', '-j3']
 
     if args.plugin:
-        plugin = get_plugin_name(args.file)
-        if not plugin:
-            raise BuildError('Cannot determine current plugin name from %r' % args.file)
-        cmd += [plugin + '/fast']
+        if plugin := get_plugin_name(args.file):
+            cmd += [f'{plugin}/fast']
 
+        else:
+            raise BuildError('Cannot determine current plugin name from %r' % args.file)
     run_command(cmd)
 
     if args.install:
@@ -59,5 +58,5 @@ if __name__ == '__main__':
     try:
         main(parser.parse_args())
     except BuildError as e:
-        print('** Error: ' + str(e))
+        print(f'** Error: {str(e)}')
         sys.exit(1)

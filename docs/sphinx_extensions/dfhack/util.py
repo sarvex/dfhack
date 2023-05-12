@@ -6,7 +6,7 @@ DFHACK_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os
 DOCS_ROOT = os.path.join(DFHACK_ROOT, 'docs')
 
 if not os.path.isdir(DOCS_ROOT):
-    raise ReferenceError('docs root not found: %s' % DOCS_ROOT)
+    raise ReferenceError(f'docs root not found: {DOCS_ROOT}')
 
 
 @contextlib.contextmanager
@@ -33,8 +33,5 @@ def directive_arg_str_list(argument):
     of strings.
     (Directive option conversion function.)
     """
-    if ',' in argument:
-        entries = argument.split(',')
-    else:
-        entries = argument.split()
+    entries = argument.split(',') if ',' in argument else argument.split()
     return [entry.strip() for entry in entries]

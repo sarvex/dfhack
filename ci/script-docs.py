@@ -11,7 +11,7 @@ def get_cmd(path):
     """Get the command from the name of a script."""
     dname, fname = basename(dirname(path)), splitext(basename(path))[0]
     if dname in ('devel', 'fix', 'gui', 'modtools'):
-        return dname + '/' + fname
+        return f'{dname}/{fname}'
     return fname
 
 
@@ -31,7 +31,7 @@ def check_ls(docfile, lines):
 
 def check_file(fname):
     errors, doc_start_line = 0, None
-    docfile = join(DOCS_PATH, get_cmd(fname)+'.rst')
+    docfile = join(DOCS_PATH, f'{get_cmd(fname)}.rst')
     if not exists(docfile):
         print_error('missing documentation file: {!r}'.format(docfile), fname)
         return 1

@@ -52,7 +52,7 @@ def doc_dir(dirname, files, prefix):
     for f in files:
         if f[-4:] != '.rst':
             continue
-        yield prefix + f[:-4], sdir + '/' + f
+        yield (prefix + f[:-4], f'{sdir}/{f}')
 
 
 def doc_all_dirs():
@@ -77,7 +77,7 @@ def write_tool_docs():
         include = ('.. include:: /{path}\n\n').format(path=k[1])
         os.makedirs(os.path.join('docs/tools', os.path.dirname(k[0])),
                     mode=0o755, exist_ok=True)
-        with write_file_if_changed('docs/tools/{}.rst'.format(k[0])) as outfile:
+        with write_file_if_changed(f'docs/tools/{k[0]}.rst') as outfile:
             if k[0] != 'search':
                 outfile.write(label)
             outfile.write(include)
@@ -155,13 +155,13 @@ def get_version():
     pattern = re.compile(r'set\((df_version|dfhack_release)\s+"(.+?)"\)')
     try:
         with open('CMakeLists.txt') as f:
-            for s in f.readlines():
+            for s in f:
                 for match in pattern.findall(s.lower()):
                     if match[0] == 'df_version':
                         version = match[1]
                     elif match[0] == 'dfhack_release':
                         release = match[1]
-        return (version + '-' + release).replace('")\n', '')
+        return f'{version}-{release}'.replace('")\n', '')
     except IOError:
         return 'unknown'
 

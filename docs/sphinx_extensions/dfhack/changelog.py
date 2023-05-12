@@ -37,10 +37,7 @@ REPLACEMENTS = {
 }
 
 def to_title_case(word):
-    if word == word.upper():
-        # Preserve acronyms
-        return word
-    return word[0].upper() + word[1:].lower()
+    return word if word == word.upper() else word[0].upper() + word[1:].lower()
 
 def find_all_indices(string, substr):
     start = 0
@@ -177,11 +174,12 @@ def print_changelog(versions, all_entries, path, replace=True, prefix=''):
             if replace:
                 line = replace_text(line, REPLACEMENTS)
             f.write(prefix + line + '\n')
+
         for version in versions:
             sections = all_entries[version]
             if not sections:
                 continue
-            version = 'DFHack ' + version
+            version = f'DFHack {version}'
             write(version)
             write('=' * len(version))
             write('')
@@ -193,15 +191,14 @@ def print_changelog(versions, all_entries, path, replace=True, prefix=''):
                 write('-' * len(section))
                 for entry in entries:
                     if len(entry.children) == 1:
-                        write('- ' + entry.feature + ': ' +
-                                entry.children[0].strip('- '))
+                        write((f'- {entry.feature}: ' + entry.children[0].strip('- ')))
                         continue
                     elif entry.children:
-                        write('- ' + entry.feature + ':')
+                        write(f'- {entry.feature}:')
                         for child in entry.children:
-                            write('    - ' + child)
+                            write(f'    - {child}')
                     else:
-                        write('- ' + entry.feature)
+                        write(f'- {entry.feature}')
                 write('')
             write('')
 
@@ -212,7 +209,7 @@ def generate_changelog(all=False):
     # scan for unrecognized sections
     for entry in entries:
         if entry.section not in CHANGELOG_SECTIONS:
-            raise SphinxWarning('Unknown section: ' + entry.section)
+            raise SphinxWarning(f'Unknown section: {entry.section}')
 
     # ordered versions
     versions = ['future']
@@ -246,19 +243,25 @@ def generate_changelog(all=False):
     if all:
         for version in versions:
             if version not in stable_version_map:
-                print('warn: skipping ' + version)
+                print(f'warn: skipping {version}')
                 continue
             if stable_version_map[version] == version:
                 version_entries = {version: stable_entries[version]}
             else:
                 version_entries = {version: dev_entries[version]}
-            print_changelog([version], version_entries,
-                os.path.join(DOCS_ROOT, 'changelogs/%s-github.txt' % version),
-                replace=False)
-            print_changelog([version], version_entries,
-                os.path.join(DOCS_ROOT, 'changelogs/%s-reddit.txt' % version),
+            print_changelog(
+                [version],
+                version_entries,
+                os.path.join(DOCS_ROOT, f'changelogs/{version}-github.txt'),
                 replace=False,
-                prefix='> ')
+            )
+            print_changelog(
+                [version],
+                version_entries,
+                os.path.join(DOCS_ROOT, f'changelogs/{version}-reddit.txt'),
+                replace=False,
+                prefix='> ',
+            )
 
     return entries
 
@@ -281,9 +284,9 @@ def cli_entrypoint():
         for entry in entries:
             for description in entry.children:
                 if not entry.dev_only and description not in content_stable:
-                    print('stable missing: ' + description)
+                    print(f'stable missing: {description}')
                 if description not in content_dev:
-                    print('dev missing: ' + description)
+                    print(f'dev missing: {description}')
 
 
 def sphinx_entrypoint(app, config):

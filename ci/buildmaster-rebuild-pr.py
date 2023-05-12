@@ -14,10 +14,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def get_required_env(name):
-    value = os.environ.get(name)
-    if not value:
+    if value := os.environ.get(name):
+        return value
+    else:
         raise ValueError(f'Expected environment variable {name!r} to be non-empty')
-    return value
 
 
 def make_sig(body, secret, algorithm):
@@ -56,16 +56,16 @@ response = requests.post(
     'https://lubar-webhook-proxy.appspot.com/github/buildmaster',
     headers={
         'Content-Type': 'application/json',
-        'User-Agent': 'GitHub-Hookshot/' + requests.utils.default_user_agent(),
-        'X-GitHub-Delivery': 'dfhack-rebuild-' + str(uuid.uuid4()),
+        'User-Agent': f'GitHub-Hookshot/{requests.utils.default_user_agent()}',
+        'X-GitHub-Delivery': f'dfhack-rebuild-{str(uuid.uuid4())}',
         'X-GitHub-Event': 'pull_request',
-        'X-Hub-Signature': 'sha1=' + make_sig(body, secret, hashlib.sha1),
-        'X-Hub-Signature-256': 'sha256=' + make_sig(body, secret, hashlib.sha256),
+        'X-Hub-Signature': f'sha1={make_sig(body, secret, hashlib.sha1)}',
+        'X-Hub-Signature-256': f'sha256={make_sig(body, secret, hashlib.sha256)}',
     },
     data=body,
     timeout=15,
 )
 
 print(response)
-print(str(response.text))
+print(response.text)
 response.raise_for_status()

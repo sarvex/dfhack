@@ -47,8 +47,16 @@ def get_test_status():
             return {k: TestStatus(v) for k, v in json.load(f).items()}
 
 def change_setting(content, setting, value):
-    return '[' + setting + ':' + value + ']\n' + re.sub(
-        r'\[' + setting + r':.+?\]', '(overridden)', content, flags=re.IGNORECASE)
+    return (
+        f'[{setting}:{value}'
+        + ']\n'
+        + re.sub(
+            r'\[' + setting + r':.+?\]',
+            '(overridden)',
+            content,
+            flags=re.IGNORECASE,
+        )
+    )
 
 os.chdir(args.df_folder)
 if os.path.exists(test_status_file):
@@ -56,7 +64,7 @@ if os.path.exists(test_status_file):
 
 print('Backing up init.txt to init.txt.orig')
 init_txt_path = 'data/init/init.txt'
-shutil.copyfile(init_txt_path, init_txt_path + '.orig')
+shutil.copyfile(init_txt_path, f'{init_txt_path}.orig')
 with open(init_txt_path) as f:
     init_contents = f.read()
 init_contents = change_setting(init_contents, 'INTRO', 'NO')
@@ -68,10 +76,7 @@ init_contents = change_setting(init_contents, 'FPS', 'YES')
 if args.headless:
     init_contents = change_setting(init_contents, 'PRINT_MODE', 'TEXT')
 
-init_path = 'dfhack-config/init'
-if not os.path.isdir('hack/init'):
-    # we're on an old branch that still reads init files from the root dir
-    init_path = '.'
+init_path = '.' if not os.path.isdir('hack/init') else 'dfhack-config/init'
 try:
     os.mkdir(init_path)
 except OSError as error:
@@ -123,15 +128,15 @@ try:
             stderr=subprocess.PIPE)
         out, err = process.communicate()
         if err:
-            print('WARN: DF produced stderr: ' + repr(err[:5000]))
+            print(f'WARN: DF produced stderr: {repr(err[:5000])}')
             with open('df-raw-stderr.log', 'wb') as f:
                 f.write(err)
         if process.returncode != 0:
-            print('ERROR: DF exited with ' + repr(process.returncode))
-            print('DF stdout: ' + repr(out[:5000]))
+            print(f'ERROR: DF exited with {repr(process.returncode)}')
+            print(f'DF stdout: {repr(out[:5000])}')
 finally:
     print('\nRestoring original init.txt')
-    shutil.copyfile(init_txt_path + '.orig', init_txt_path)
+    shutil.copyfile(f'{init_txt_path}.orig', init_txt_path)
     if os.path.isfile(test_init_file):
         os.remove(test_init_file)
     if not args.keep_status and os.path.isfile(test_status_file):

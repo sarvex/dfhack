@@ -16,8 +16,10 @@ def print_stderr(stderr, args):
         # e.g. luac prints "luac:" in front of messages, so find the first part
         # containing the actual filename
         for i in range(len(parts) - 1):
-            if parts[i].endswith('.' + args.ext) and parts[i + 1].isdigit():
-                print('::error file=%s,line=%s::%s' % (parts[i], parts[i + 1], ':'.join(parts[i + 2:])))
+            if parts[i].endswith(f'.{args.ext}') and parts[i + 1].isdigit():
+                print(
+                    f"::error file={parts[i]},line={parts[i + 1]}::{':'.join(parts[i + 2:])}"
+                )
                 break
 
 
@@ -25,7 +27,7 @@ def main(args):
     root_path = os.path.abspath(args.path)
     cmd = args.cmd.split(' ')
     if not os.path.exists(root_path):
-        print('Nonexistent path: %s' % root_path)
+        print(f'Nonexistent path: {root_path}')
         sys.exit(2)
     err = False
     for cur, dirnames, filenames in os.walk(root_path):
@@ -33,7 +35,7 @@ def main(args):
         if '.git' in parts or 'depends' in parts:
             continue
         for filename in filenames:
-            if not filename.endswith('.' + args.ext):
+            if not filename.endswith(f'.{args.ext}'):
                 continue
             full_path = os.path.join(cur, filename)
             try:
@@ -48,7 +50,7 @@ def main(args):
                 err = True
             except IOError:
                 if not err:
-                    print('Warning: cannot check %s script syntax' % args.ext)
+                    print(f'Warning: cannot check {args.ext} script syntax')
                 err = True
     sys.exit(int(err))
 

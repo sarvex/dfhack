@@ -12,7 +12,7 @@ def load_pattern_files(paths):
     patterns = []
     for p in paths:
         with open(p) as f:
-            for line in f.readlines():
+            for line in f:
                 line = line.strip()
                 if line and not line.startswith('#'):
                     patterns.append(line)
@@ -63,7 +63,7 @@ class LinterError(Exception):
         self.total_lines = total_lines
 
     def __str__(self):
-        return '%s: %s' % (self.message, format_lines(self.lines, self.total_lines))
+        return f'{self.message}: {format_lines(self.lines, self.total_lines)}'
 
     def github_actions_workflow_command(self, filename):
         first_line = self.lines[0] if self.lines else 1
@@ -72,10 +72,7 @@ class LinterError(Exception):
 class Linter(object):
     ignore = False
     def check(self, lines):
-        failures = []
-        for i, line in enumerate(lines):
-            if not self.check_line(line):
-                failures.append(i + 1)
+        failures = [i + 1 for i, line in enumerate(lines) if not self.check_line(line)]
         if len(failures):
             raise LinterError(self.msg, failures, len(lines))
 
@@ -113,31 +110,26 @@ linters = [cls() for cls in Linter.__subclasses__() if not cls.ignore]
 def walk_all(root_path):
     for cur, dirnames, filenames in os.walk(root_path):
         for filename in filenames:
-            full_path = os.path.join(cur, filename)
-            yield full_path
+            yield os.path.join(cur, filename)
 
 def walk_git_files(root_path):
     p = subprocess.Popen(['git', '-C', root_path, 'ls-files', root_path], stdout=subprocess.PIPE)
     for line in p.stdout.readlines():
         path = line.decode('utf-8').strip()
-        full_path = os.path.join(root_path, path)
-        yield full_path
+        yield os.path.join(root_path, path)
     if p.wait() != 0:
         raise RuntimeError('git exited with %r' % p.returncode)
 
 def main(args):
     root_path = os.path.abspath(args.path)
     if not os.path.exists(args.path):
-        print('Nonexistent path: %s' % root_path)
+        print(f'Nonexistent path: {root_path}')
         sys.exit(2)
 
     check_patterns = load_pattern_files(args.check_patterns)
     ignore_patterns = load_pattern_files(args.ignore_patterns)
 
-    walk_iter = walk_all
-    if args.git_only:
-        walk_iter = walk_git_files
-
+    walk_iter = walk_git_files if args.git_only else walk_all
     for full_path in walk_iter(root_path):
         rel_path = full_path.replace(root_path, '').replace('\\', '/').lstrip('/')
         if not valid_file(rel_path, check_patterns, ignore_patterns):
@@ -160,7 +152,7 @@ def main(args):
             try:
                 linter.check(lines)
             except LinterError as e:
-                error('%s: %s' % (rel_path, e))
+                error(f'{rel_path}: {e}')
                 if args.github_actions:
                     print(e.github_actions_workflow_command(rel_path))
                 if args.fix:
