@@ -4347,32 +4347,32 @@ A framed screen has the following attributes:
 
 There are the following predefined frame style tables:
 
-* ``WINDOW_FRAME``
+* ``FRAME_WINDOW``
 
   A frame suitable for a draggable, optionally resizable window.
 
-* ``PANEL_FRAME``
+* ``FRAME_PANEL``
 
   A frame suitable for a static (non-draggable, non-resizable) panel.
 
-* ``MEDIUM_FRAME``
+* ``FRAME_MEDIUM``
 
   A frame suitable for overlay widget panels.
 
-* ``BOLD_FRAME``
+* ``FRAME_BOLD``
 
   A frame suitable for a non-draggable panel meant to capture the user's focus,
   like an important notification, confirmation dialog or error message.
 
-* ``INTERIOR_FRAME``
+* ``FRAME_INTERIOR``
 
   A frame suitable for light interior accent elements. This frame does *not*
   have a visible ``DFHack`` signature on it, so it must not be used as the most
   external frame for a DFHack-owned UI.
 
-* ``INTERIOR_MEDIUM_FRAME``
+* ``FRAME_INTERIOR_MEDIUM``
 
-  A copy of ``MEDIUM_FRAME`` that lacks the ``DFHack`` signature. Suitable for
+  A copy of ``FRAME_MEDIUM`` that lacks the ``DFHack`` signature. Suitable for
   panels that are part of a larger widget cluster. Must *not* be used as the
   most external frame for a DFHack-owned UI.
 
@@ -5106,6 +5106,14 @@ The widget implements:
 
   Same as with an ordinary list.
 
+Filter behavior:
+
+By default, the filter matches substrings that start at the beginning of a word
+(or after any punctuation). You can instead configure filters to match any
+substring with a command like::
+
+  :lua require('gui.widgets').FILTER_FULL_TEXT=true
+
 TabBar class
 ------------
 
@@ -5113,7 +5121,9 @@ This widget implements a set of one or more tabs to allow navigation between gro
 the width of the window and will continue rendering on the next line(s) if all tabs cannot fit on a single line.
 
 :key: Specifies a keybinding that can be used to switch to the next tab.
-:key_back: Specifies a keybinding that can be used to switch to the previous tab.
+      Defaults to ``CUSTOM_CTRL_T``.
+:key_back: Specifies a keybinding that can be used to switch to the previous
+      tab. Defaults to ``CUSTOM_CTRL_Y``.
 :labels: A table of strings; entry representing the label text for a single tab. The order of the entries
          determines the order the tabs will appear in.
 :on_select: Callback executed when a tab is selected. It receives the selected tab index as an argument. The provided function

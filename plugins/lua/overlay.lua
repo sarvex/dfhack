@@ -292,7 +292,7 @@ local function load_widgets(env_name, env)
 end
 
 -- called directly from cpp on plugin enable
-function reload()
+function rescan()
     reset()
 
     for _,plugin in ipairs(dfhack.internal.listPlugins()) do
@@ -317,7 +317,7 @@ dfhack.onStateChange[GLOBAL_KEY] = function(sc)
         return
     end
     -- pick up widgets from active mods
-    reload()
+    rescan()
 end
 
 local function dump_widget_config(name, widget)
@@ -580,7 +580,8 @@ TitleVersionOverlay.ATTRS{
     default_pos={x=7, y=2},
     default_enabled=true,
     viewscreens='title/Default',
-    frame={w=35, h=3},
+    frame={w=35, h=5},
+    autoarrange_subviews=1,
 }
 
 function TitleVersionOverlay:init()
@@ -601,6 +602,20 @@ function TitleVersionOverlay:init()
             frame={t=0, l=0},
             text=text,
             text_pen=COLOR_WHITE,
+        },
+        widgets.HotkeyLabel{
+            frame={l=0},
+            label='Quickstart guide',
+            auto_width=true,
+            key='STRING_A063',
+            on_activate=function() dfhack.run_script('quickstart-guide') end,
+        },
+        widgets.HotkeyLabel{
+            frame={l=0},
+            label='Control panel',
+            auto_width=true,
+            key='STRING_A047',
+            on_activate=function() dfhack.run_script('gui/control-panel') end,
         },
     }
 end
