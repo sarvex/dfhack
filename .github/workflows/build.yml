@@ -44,7 +44,7 @@ jobs:
       run: |
         sudo apt-get install gcc-${{ matrix.gcc }} g++-${{ matrix.gcc }}
     - name: Clone DFHack
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0  # unlimited - we need past tags
         submodules: true
@@ -135,7 +135,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install ccache
       - name: Clone DFHack
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
@@ -177,7 +177,7 @@ jobs:
       run: |
         pip install 'sphinx'
     - name: Clone DFHack
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
       with:
         submodules: true
     - name: Build docs
@@ -196,7 +196,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install lua5.3
     - name: Clone DFHack
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
       with:
         submodules: true
         # don't need tags here
