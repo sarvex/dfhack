@@ -40,7 +40,7 @@ jobs:
           ssh-key: ${{ secrets.DFHACK_3RDPARTY_TOKEN }}
           path: depends/steam
       - name: Fetch ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: build/win64-cross/ccache
           key: ccache-win64-cross-msvc-${{ github.event.inputs.commit_hash }}

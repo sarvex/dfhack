@@ -62,7 +62,7 @@ jobs:
         #        path: ~/DF
         #        key: dfcache-${{ steps.env_setup.outputs.df_version }}-${{ hashFiles('ci/download-df.sh') }}
     - name: Fetch ccache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.ccache
         key: ccache-v2-${{ matrix.os }}-gcc-${{ matrix.gcc }}-${{ github.ref_name }}-${{ github.sha }}
@@ -140,7 +140,7 @@ jobs:
           submodules: true
           fetch-depth: 0
       - name: Fetch ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: build/win64-cross/ccache
           key: ccache-win64-cross-msvc-${{ github.ref_name }}-${{ github.sha }}
